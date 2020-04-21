@@ -27,7 +27,8 @@
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "build": "webpack --mode=production",
-    "start": "webpack-dev-server"
+    "start:client": "webpack-dev-server",
+    "start": "npm run build && node dist/server.js"
   },
   "standard": {
     "env": [
