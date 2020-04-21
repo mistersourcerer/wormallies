@@ -4,6 +4,16 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const server = {
   target: 'node',
   entry: './src/server.js',
+  devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    compress: true,
+    // Well.. here we go, this is actually to be sure that
+    // the client starts on port 9000.
+    // Why it has to be here in the first config?
+    // Your guess is as good as mine.
+    // #TODO: understand why and fix it (bringing the config to the client)
+    port: 9000
+  },
   output: {
     filename: 'server.js',
     path: path.resolve(__dirname, 'dist')
@@ -36,11 +46,6 @@ const client = {
       filename: 'index.html'
     })
   ],
-  devServer: {
-    contentBase: path.join(__dirname, 'dist'),
-    compress: true,
-    port: 9000 // ???
-  },
   module: {
     rules: [
       {
