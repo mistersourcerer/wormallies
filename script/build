@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-set -e
-
-cp ./index.html dist/index.html
-npx webpack --mode production

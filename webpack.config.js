@@ -1,4 +1,5 @@
 const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: './src/index.js',
@@ -6,13 +7,17 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
-
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './index.ejs',
+      filename: 'index.html'
+    })
+  ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     port: 9000
   },
-
   module: {
     rules: [
       {
@@ -21,16 +26,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              [
-                '@babel/preset-env',
-                {
-                  targets: {
-                    esmodules: true
-                  }
-                }
-              ]
-            ]
+            presets: ['@babel/preset-env']
           }
         }
       },
