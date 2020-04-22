@@ -1,16 +1,16 @@
-let counter = 0
+const initialState = {
+  counter: 0,
+  render: (state) => state
+}
+let state = { ...initialState }
+
 const loop = () => {
-  counter += 1
-
-  if (counter === 50) {
-    console.log('tick')
-    counter = 0
-  }
-
+  state = state.render(state)
   window.requestAnimationFrame(loop)
 }
 
-export const start = () => {
-  console.log('will loop')
+export const start = (render) => {
+  console.log('starting loop')
+  state.render = render
   loop()
 }
