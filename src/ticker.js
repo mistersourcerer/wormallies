@@ -1,6 +1,5 @@
 const initialState = {
-  counter: 0,
-  render: (state) => state
+  counter: 0
 }
 let state = { ...initialState }
 
@@ -11,6 +10,6 @@ const loop = () => {
 
 export const start = (render) => {
   console.log('starting loop')
-  state.render = render
+  if (state.render === undefined) state = { ...state, render: render }
   loop()
 }
