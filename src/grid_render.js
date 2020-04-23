@@ -1,11 +1,11 @@
-const emptyGrid = (config) => {
+const empty = (config) => {
   const totalCellSize = config.cellSize + config.cellBorderSize
   const cols = Math.floor(config.width / totalCellSize)
   const rows = Math.floor(config.height / totalCellSize)
   return Array(rows).fill(Array(cols).fill(null))
 }
 
-const drawGrid = (grid, context, config) => {
+const draw = (grid, context, config) => {
   grid.forEach((cols, row) => {
     const y = (row * config.cellBorderSize) + (row * config.cellSize)
 
@@ -37,23 +37,9 @@ const drawGrid = (grid, context, config) => {
   })
 }
 
-const GridRender = {
-  with: (context, config) => {
-    const grid = emptyGrid(config)
-
-    return (state) => {
-      const newState = { ...state, counter: state.counter + 1 }
-
-      if (state.counter === 50) {
-        console.log('tick')
-        newState.counter = 0
-
-        drawGrid(grid, context, config)
-      }
-
-      return newState
-    }
-  }
+const Grid = {
+  draw: draw,
+  empty: empty
 }
 
-export default GridRender
+export default Grid

@@ -1,15 +1,40 @@
-const initialState = {
-  counter: 0
+let state = {
+  __lastRenderTime__: undefined,
+  __render__: undefined,
+  config: {}
 }
-let state = { ...initialState }
+
+const shouldRender = (now) => {
+  let timeSinceLast
+
+  if (state.__lastRenderTime__ === undefined) {
+    timeSinceLast = state.config.frameIntervalMs
+  } else {
+    timeSinceLast = now - state.__lastRenderTime__
+  }
+
+  return timeSinceLast >= state.config.frameIntervalMs
+}
 
 const loop = () => {
-  state = state.render(state)
+  const now = Date.now()
+
+  if (shouldRender(now)) {
+    state = state.config.render(state)
+    state.__lastRenderTime__ = now
+  }
+
   window.requestAnimationFrame(loop)
 }
 
-export const start = (render) => {
-  console.log('starting loop')
-  if (state.render === undefined) state = { ...state, render: render }
+export const start = (render, config) => {
+  state = {
+    ...state,
+    config: {
+      ...state.config,
+      render: render,
+      frameIntervalMs: (config.frameIntervalMs === undefined) ? 17 : config.frameIntervalMs
+    }
+  }
   loop()
 }

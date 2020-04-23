@@ -1,6 +1,6 @@
 import './css/app.scss'
 import { start } from './ticker'
-import GridRender from './grid_render'
+import Grid from './grid_render'
 
 const defaultConfig = {
   width: 600,
@@ -9,6 +9,8 @@ const defaultConfig = {
   cellBorderSize: 2
 }
 
+let grid
+let context
 let loaded = false
 
 const configureCanvas = (config) => {
@@ -36,9 +38,20 @@ const load = (overrides) => {
 
   const config = { ...defaultConfig, ...overrides }
   const canvas = configureCanvas(config)
-  const context = canvas.getContext('2d')
 
-  start(GridRender.with(context, config))
+  context = canvas.getContext('2d')
+
+  grid = Grid.empty(config)
+  Grid.draw(grid, context, config)
+  start(draw, config)
+}
+
+const draw = (state) => {
+  // TODO: check if we should draw, and if so, draw it
+
+  console.log('drawing...')
+
+  return state
 }
 
 document.onreadystatechange = load
