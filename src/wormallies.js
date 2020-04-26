@@ -3,8 +3,8 @@ import Grid from './grid'
 import Render from './grid_render'
 
 const defaultConfig = {
-  width: 800,
-  height: 600,
+  width: 300,
+  height: 300,
   cellSize: 16,
   cellBorderSize: 2,
   backgroundColor: '#fff',
@@ -32,9 +32,10 @@ let grid
 let candies
 let context
 let movingTo
-let head
 let running = false
+let lastRun
 let timeSinceLastCandy
+let snake
 
 const randomPosition = () => {
   return {
@@ -57,45 +58,84 @@ const spawnCandy = () => {
   const position = randomPosition()
   const cell = grid[position.row][position.col]
   candies[position.row][position.col] = {
-    birth: now
+    birth: now,
+    cell: cell
   }
   timeSinceLastCandy = now
-  paintCell(cell, '#900')
   // candy should die from time to time
 }
 
-const moveHead = () => {
+const drawCandies = () => {
+  candies.forEach((cols) => {
+    cols.filter(candy => candy !== false).forEach(candy => {
+      paintCell(candy.cell, '#900')
+    })
+  })
+}
+
+const isCandy = (position) => {
+  return candies[position.row][position.col]
+}
+
+const newHead = () => {
+  const head = snake[0]
+
   let row = head.row
   let col = head.col
 
   switch (movingTo) {
     case Direction.north:
-      if (row === 0) return
+      if (row === 0) return null
       row = head.row - 1
       break
     case Direction.east:
-      if (col >= grid[0].length - 1) return
+      if (col >= grid[0].length - 1) return null
       col = head.col + 1
       break
     case Direction.south:
-      if (row >= grid.length - 1) return
+      if (row >= grid.length - 1) return null
       row = head.row + 1
       break
     case Direction.west:
-      if (col === 0) return
+      if (col === 0) return null
       col = head.col - 1
       break
   }
 
-  drawHead(grid[row][col])
+  return grid[row][col]
 }
 
-let lastRun
+const moveSnake = () => {
+  const head = newHead()
+  let body
+
+  if (head === null) { // is dead?
+    // for now, return to center
+    snake = [Grid.center(grid)]
+    running = false
+    return
+  }
+
+  if (isCandy(head)) {
+    body = snake
+    candies[head.row][head.col] = false // remove candy
+  } else {
+    body = snake.slice(0, snake.length - 1)
+  }
+
+  snake = [head].concat(body)
+}
 
 const shouldRun = (now) => {
   if (lastRun === undefined) return true
 
   return now - lastRun >= config.velocity
+}
+
+const drawSnake = () => {
+  snake.forEach((cell) => {
+    paintCell(cell, '#009')
+  })
 }
 
 const draw = (state) => {
@@ -104,10 +144,14 @@ const draw = (state) => {
   const now = Date.now()
   if (!shouldRun(now)) return state
 
+  lastRun = now
+  Render.grid(grid, config, context) // clean grid
+
   if (shouldSpawnCandy()) spawnCandy()
 
-  lastRun = now
-  moveHead()
+  moveSnake()
+  drawCandies()
+  drawSnake()
 
   return state
 }
@@ -133,17 +177,14 @@ const configureCanvas = (config) => {
 }
 
 const paintCell = (cell, style) => {
-  context.fillStyle = style
-  context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
-}
-
-const drawHead = (newHead) => {
-  if (newHead !== undefined) {
-    Render.cell(grid, head, config, context)
-    head = newHead
+  // means 'cleanup'
+  if (style === undefined) {
+    style = config.backgroundColor
+    Render.cell(grid, cell, config, context)
+  } else {
+    context.fillStyle = style
+    context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
   }
-
-  paintCell(head, '#009')
 }
 
 const shouldChangeDirection = (keyCode) => {
@@ -169,16 +210,16 @@ export const load = (overrides) => {
   document.onkeydown = control
 
   config = { ...defaultConfig, ...overrides }
-  const canvas = configureCanvas(config)
-  context = canvas.getContext('2d')
+  context = configureCanvas(config).getContext('2d')
   grid = Render.grid(Grid.empty(config), config, context)
   candies = grid.map((cols) => {
     return cols.map(_ => false)
   })
 
-  head = Grid.center(grid)
-  drawHead(head)
+  snake = [Grid.center(grid)]
+  console.log(snake)
 
+  drawSnake()
   start(draw, config)
 }
 
