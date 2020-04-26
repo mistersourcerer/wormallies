@@ -33,7 +33,7 @@ export const start = (render, config) => {
     config: {
       ...state.config,
       render: render,
-      frameIntervalMs: (config.frameIntervalMs === undefined) ? 17 : config.frameIntervalMs
+      frameIntervalMs: (config.frameIntervalMs === undefined) ? 16 : config.frameIntervalMs
     }
   }
   loop()
