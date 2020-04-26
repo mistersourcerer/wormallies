@@ -1,5 +1,6 @@
 import { start } from './ticker'
 import Grid from './grid'
+import Render from './grid_render'
 
 const defaultConfig = {
   width: 800,
@@ -7,7 +8,9 @@ const defaultConfig = {
   cellSize: 16,
   cellBorderSize: 2,
   backgroundColor: '#fff',
-  velocity: 200
+  velocity: 200,
+  candyFrequency: 5000, // milisecs
+  candyChance: 70 // 70 %
 }
 
 const Direction = {
@@ -26,10 +29,40 @@ const directions = {
 
 let config
 let grid
+let candies
 let context
 let movingTo
 let head
 let running = false
+let timeSinceLastCandy
+
+const randomPosition = () => {
+  return {
+    col: randomInt(grid[0].length),
+    row: randomInt(grid.length)
+  }
+}
+
+const shouldSpawnCandy = (chance) => {
+  const now = Date.now()
+  if (timeSinceLastCandy === undefined) timeSinceLastCandy = now
+  if (chance === undefined) chance = config.candyChance
+  const positive = Math.floor(Math.random() * 100)
+
+  return positive && now - timeSinceLastCandy >= config.candyFrequency
+}
+
+const spawnCandy = () => {
+  const now = Date.now()
+  const position = randomPosition()
+  const cell = grid[position.row][position.col]
+  candies[position.row][position.col] = {
+    birth: now
+  }
+  timeSinceLastCandy = now
+  paintCell(cell, '#900')
+  // candy should die from time to time
+}
 
 const moveHead = () => {
   let row = head.row
@@ -54,7 +87,7 @@ const moveHead = () => {
       break
   }
 
-  drawHead(context, grid[row][col])
+  drawHead(grid[row][col])
 }
 
 let lastRun
@@ -70,6 +103,8 @@ const draw = (state) => {
 
   const now = Date.now()
   if (!shouldRun(now)) return state
+
+  if (shouldSpawnCandy()) spawnCandy()
 
   lastRun = now
   moveHead()
@@ -97,14 +132,18 @@ const configureCanvas = (config) => {
   return canvas
 }
 
-const drawHead = (context, newHead) => {
+const paintCell = (cell, style) => {
+  context.fillStyle = style
+  context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
+}
+
+const drawHead = (newHead) => {
   if (newHead !== undefined) {
-    drawCell(head)
+    Render.cell(grid, head, config, context)
     head = newHead
   }
 
-  context.fillStyle = '#009'
-  context.fillRect(head.x + config.cellBorderSize, head.y, head.width, head.height)
+  paintCell(head, '#009')
 }
 
 const shouldChangeDirection = (keyCode) => {
@@ -122,48 +161,8 @@ const control = (event) => {
   }
 }
 
-const drawCell = (cell) => {
-  const x = cell.x
-  const y = cell.y
-  const row = cell.row
-  const col = cell.col
-  const cols = grid[cell.row]
-  const size = config.cellSize + config.cellBorderSize
-
-  context.beginPath()
-
-  // background
-  context.fillStyle = config.backgroundColor
-  context.fillRect(x, y, size, size)
-
-  if (row === 0) {
-    // draw tops
-    context.moveTo(x + config.cellBorderSize, y + config.cellBorderSize)
-    context.lineTo(x + config.cellSize, y + config.cellBorderSize)
-    context.stroke()
-  }
-
-  if (col === cols.length - 1) {
-    context.moveTo(x + config.cellSize + (config.cellBorderSize / 2), y + config.cellBorderSize)
-    context.lineTo(x + config.cellSize + (config.cellBorderSize / 2), y + config.cellSize)
-    context.stroke()
-  }
-
-  context.moveTo(x + config.cellBorderSize, y + config.cellBorderSize)
-  context.lineTo(x + config.cellBorderSize, y + config.cellSize)
-  context.stroke()
-
-  context.moveTo(x + config.cellBorderSize, y + config.cellSize)
-  context.lineTo(x + config.cellBorderSize + config.cellSize, y + config.cellSize)
-  context.stroke()
-}
-
-const drawGrid = () => {
-  grid.forEach((cols, row) => {
-    cols.forEach((cell, col) => {
-      drawCell(cell)
-    })
-  })
+const randomInt = (max) => {
+  return Math.floor(Math.random() * Math.floor(max))
 }
 
 export const load = (overrides) => {
@@ -172,11 +171,13 @@ export const load = (overrides) => {
   config = { ...defaultConfig, ...overrides }
   const canvas = configureCanvas(config)
   context = canvas.getContext('2d')
-  grid = Grid.empty(config)
-  drawGrid()
+  grid = Render.grid(Grid.empty(config), config, context)
+  candies = grid.map((cols) => {
+    return cols.map(_ => false)
+  })
 
   head = Grid.center(grid)
-  drawHead(context)
+  drawHead(head)
 
   start(draw, config)
 }
