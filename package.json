@@ -1,5 +1,5 @@
 {
-  "name": "mister_sourcerer-site",
+  "name": "Wormallies",
   "version": "0.0.1",
   "description": "",
   "author": "Ricardo Valeriano",
@@ -10,6 +10,7 @@
     "@babel/polyfill": "^7.8.7",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
+    "canvas": "^2.6.1",
     "css-loader": "^3.5.2",
     "html-webpack-plugin": "^4.2.0",
     "jest": "^25.3.0",
@@ -35,6 +36,18 @@
   "standard": {
     "env": [
       "jest"
+    ]
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "src"
     ]
   }
 }
