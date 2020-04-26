@@ -99,7 +99,7 @@ const configureCanvas = (config) => {
 
 const drawHead = (context, newHead) => {
   if (newHead !== undefined) {
-    Grid.drawCell(head, grid, context, config)
+    drawCell(head)
     head = newHead
   }
 
