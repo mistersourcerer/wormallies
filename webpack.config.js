@@ -40,6 +40,7 @@ const client = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
+  devtool: 'source-map',
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.ejs',
