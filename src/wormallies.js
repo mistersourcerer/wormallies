@@ -27,6 +27,8 @@ const directions = {
   ArrowLeft: Direction.west
 }
 
+let directionsBuffer = []
+
 let config
 let grid
 let candies
@@ -101,6 +103,7 @@ const draw = (state) => {
 
   if (shouldSpawnCandy()) spawnCandy()
 
+  changeDirection()
   moveSnake()
   drawCandies()
   drawSnake()
@@ -187,10 +190,6 @@ const configureCanvas = (config) => {
   return canvas
 }
 
-const shouldChangeDirection = (keyCode) => {
-  return Object.keys(directions).includes(keyCode)
-}
-
 const allowedNewDirections = (direction) => {
   let forbidden
   switch (direction) {
@@ -220,20 +219,23 @@ const canChangeTo = (direction) => {
   return allowedNewDirections(movingTo).includes(direction)
 }
 
-const changeDirection = (direction) => {
-  // TODO: accumulate keystrokes to turn real fast if necessary
+const changeDirection = () => {
+  const direction = directionsBuffer.slice(0, 1)[0]
 
+  directionsBuffer = directionsBuffer.slice(1, directionsBuffer.length)
   if (canChangeTo(direction)) {
     movingTo = direction
   }
 }
 
+const shouldChangeDirection = (keyCode) => {
+  return Object.keys(directions).includes(keyCode)
+}
+
 const control = (event) => {
-  // TODO: add a buffer of movements to allow those nice SHARP turns
-  // probably should be implemented inside changeDirection
   if (shouldChangeDirection(event.code)) {
     running = true
-    changeDirection(directions[event.code])
+    directionsBuffer.push(directions[event.code])
   }
 }
 
