@@ -10,6 +10,9 @@ const load = () => {
     if (score > 0) {
       value.innerText = score
       value.style.visibility = 'visible'
+    } else {
+      value.innerText = '0'
+      value.style.visibility = 'hidden'
     }
   }
 
