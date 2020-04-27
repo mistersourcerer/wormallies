@@ -171,6 +171,12 @@ const isPoison = (position) => {
   return poisons[position.row][position.col]
 }
 
+const isSnake = (position) => {
+  return snake.some(part => {
+    return part.col === position.col && part.row === position.row
+  })
+}
+
 const newHead = () => {
   const head = snake[0]
 
@@ -218,6 +224,8 @@ const moveSnake = () => {
     if (snake.length === 1) return die()
     body = snake.slice(0, snake.length - 2)
     poisons[head.row][head.col] = false // remove poison
+  } else if (isSnake(head)) {
+    return die()
   } else {
     body = snake.slice(0, snake.length - 1)
   }
