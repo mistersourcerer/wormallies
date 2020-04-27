@@ -6,14 +6,24 @@ const defaultConfig = {
   width: 500,
   height: 500,
   cellSize: 16,
-  cellBorderSize: 2,
-  backgroundColor: '#fff',
-  velocity: 200,
+  cellBorderSize: 1,
+  backgroundColor: '#fcf8f3',
+  snakeColor: '#e7d39f',
+  candyColor: '#d7385e',
+  poisonColor: '#100303',
+  velocity: 130,
   candyFrequency: 5000, // milisecs
   candyChance: 60, // 70 %
   poisonFrequency: 7000, // milisecs
-  poisonChance: 10 // 50 %
+  poisonChance: 10, // 50 %
+  maxPoints: 30,
+  pointRounding: 5,
+  pointsLost: 3,
+  onScore: (_) => {}
 }
+
+defaultConfig.candyTTL = defaultConfig.velocity * 40 // 40 ticks
+defaultConfig.poisonTTL = defaultConfig.velocity * 110
 
 const Direction = {
   north: 'north',
@@ -42,6 +52,7 @@ let lastRun
 let timeSinceLastCandy
 let timeSinceLastPoison
 let snake
+let points = 0
 
 const randomPosition = () => {
   return {
@@ -99,11 +110,11 @@ const drawSpots = (spotGrid, style) => {
 }
 
 const drawCandies = () => {
-  drawSpots(candies, '#900')
+  drawSpots(candies, config.candyColor)
 }
 
 const drawPoisons = () => {
-  drawSpots(poisons, '#060')
+  drawSpots(poisons, config.poisonColor)
 }
 
 const expireSpots = (grid, ttl) => {
@@ -116,10 +127,10 @@ const expireSpots = (grid, ttl) => {
 }
 
 const expireCandies = () => {
-  candies = expireSpots(candies, config.velocity * 40)
+  candies = expireSpots(candies, config.candyTTL)
 }
 const expirePoisons = () => {
-  poisons = expireSpots(poisons, config.velocity * 110)
+  poisons = expireSpots(poisons, config.poisonTTL)
 }
 
 const paintCell = (cell, style) => {
@@ -129,13 +140,18 @@ const paintCell = (cell, style) => {
     Render.cell(grid, cell, config, context)
   } else {
     context.fillStyle = style
-    context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
+    context.fillRect(
+      cell.x + config.cellBorderSize * 1.5,
+      cell.y - config.cellBorderSize / 2,
+      cell.width,
+      cell.height
+    )
   }
 }
 
 const drawSnake = () => {
   snake.forEach((cell) => {
-    paintCell(cell, '#009')
+    paintCell(cell, config.snakeColor)
   })
 }
 
@@ -208,7 +224,15 @@ const newHead = () => {
 const die = () => {
   snake = [Grid.center(grid)]
   running = false
+  points = 0
   configureSpots()
+}
+
+const pointsFor = (candy) => {
+  const units = config.candyTTL / config.maxPoints
+  const rawPoints = config.maxPoints - ((Date.now() - candy.birth) / units)
+
+  return Math.ceil(rawPoints / config.pointRounding) * config.pointRounding
 }
 
 const moveSnake = () => {
@@ -219,9 +243,12 @@ const moveSnake = () => {
 
   if (isCandy(head)) {
     body = snake
+    points = points + pointsFor(candies[head.row][head.col])
     candies[head.row][head.col] = false // remove candy
+    spawnCandy()
   } else if (isPoison(head)) {
     if (snake.length === 1) return die()
+    points -= config.pointsLost
     body = snake.slice(0, snake.length - 2)
     poisons[head.row][head.col] = false // remove poison
   } else if (isSnake(head)) {
@@ -229,6 +256,8 @@ const moveSnake = () => {
   } else {
     body = snake.slice(0, snake.length - 1)
   }
+
+  config.onScore(points)
 
   snake = [head].concat(body)
 }
@@ -239,22 +268,11 @@ const shouldRun = (now) => {
   return now - lastRun >= config.velocity
 }
 
-const canvasPosition = (width, height) => {
-  let y = (window.innerWidth / 2) - (width / 2)
-  if (y < 0) y = 0
-  let x = (window.innerHeight / 2) - (height / 2)
-  if (x < 0) x = 0
-
-  return { x: x, y: y }
-}
-
 const configureCanvas = (config) => {
   const canvas = document.getElementById('wormallies')
 
-  const position = canvasPosition(config.width, config.height)
   canvas.width = config.width
   canvas.height = config.height
-  canvas.style.margin = `${position.x}px 0px 0px ${position.y}px`
 
   return canvas
 }
@@ -322,7 +340,7 @@ const configureSpots = () => {
   })
 }
 
-export const load = (overrides) => {
+export const loadGame = (overrides) => {
   document.onkeydown = control
 
   config = { ...defaultConfig, ...overrides }
@@ -336,5 +354,3 @@ export const load = (overrides) => {
   drawSnake()
   start(draw, config)
 }
-
-document.onreadystatechange = load

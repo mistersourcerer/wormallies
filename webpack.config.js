@@ -62,6 +62,17 @@ const client = {
       {
         test: /\.(c|s[ac])ss$/i,
         use: ['style-loader', 'css-loader', 'sass-loader']
+      },
+      {
+        test: /\.ttf$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '/fonts/[name].[ext]'
+            }
+          }
+        ]
       }
     ]
   }

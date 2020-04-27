@@ -4,7 +4,29 @@
     <title>Wormallies: picutring your passive social media interaction</title>
   </head>
   <body>
-    <canvas id="wormallies"></canvas>
+    <div class="box">
+      <div>
+        <h1>Wormallies</h1>
+        <h2>A rendition of the classic Snake</h2>
+      </div>
+
+      <div class="game">
+        <div class="score">
+          <span class="value">
+            5000
+          </span>
+        </div>
+        <canvas id="wormallies"></canvas>
+      </div>
+
+      <div class="about">
+        <span>
+
+        </span>
+      </div>
+    </div>
+
+    <%= require('html-loader!./src/partials/forkme.html') %>
     <script src="main.js"></script>
   </body>
 </html>

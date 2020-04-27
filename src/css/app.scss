@@ -1,7 +1,55 @@
 @import "~normalize.css/normalize.css";
 
+@font-face {
+  font-family: 'Archivo Black';
+  src: url('../fonts/ArchivoBlack-Regular.ttf') format('ttf');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../fonts/Montserrat-Regular.ttf') format('ttf');
+}
+
+@font-face {
+  font-family: 'Montserrat-Thin';
+  src: url('../fonts/Montserrat-Thin.ttf') format('ttf');
+}
+
 .screen {
   height: 100%;
   width: 100%;
-  border: 1px solid #000;
+}
+
+body {
+  background-color: #fcf8f3;
+}
+
+.box {
+  font-family: 'Montserrat', sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.box h1 {
+  font-family: 'Archivo Black', sans-serif;
+  color: #698474;
+}
+
+.box h2 {
+  color: #698474;
+}
+
+.game {
+  margin-top: 40px;
+}
+
+.game .score {
+  display: flex;
+  flex-direction: row-reverse;
+  margin-right: 22px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 40px;
+  color: #698474;
 }
