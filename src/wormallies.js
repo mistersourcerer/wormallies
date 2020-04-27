@@ -3,14 +3,16 @@ import Grid from './grid'
 import Render from './grid_render'
 
 const defaultConfig = {
-  width: 300,
-  height: 300,
+  width: 500,
+  height: 500,
   cellSize: 16,
   cellBorderSize: 2,
   backgroundColor: '#fff',
   velocity: 200,
   candyFrequency: 5000, // milisecs
-  candyChance: 70 // 70 %
+  candyChance: 60, // 70 %
+  poisonFrequency: 7000, // milisecs
+  poisonChance: 10 // 50 %
 }
 
 const Direction = {
@@ -32,11 +34,13 @@ let directionsBuffer = []
 let config
 let grid
 let candies
+let poisons
 let context
 let movingTo
 let running = false
 let lastRun
 let timeSinceLastCandy
+let timeSinceLastPoison
 let snake
 
 const randomPosition = () => {
@@ -46,33 +50,76 @@ const randomPosition = () => {
   }
 }
 
-const shouldSpawnCandy = (chance) => {
+const shouldSpawn = (chance, frequency, lastSpawn) => {
   const now = Date.now()
-  if (timeSinceLastCandy === undefined) timeSinceLastCandy = now
-  if (chance === undefined) chance = config.candyChance
-  const positive = Math.floor(Math.random() * 100)
+  if (lastSpawn === undefined) lastSpawn = now
+  if ((now - lastSpawn) <= frequency) return false
 
-  return positive && now - timeSinceLastCandy >= config.candyFrequency
+  return chance > Math.floor(Math.random() * 100)
+}
+
+const shouldSpawnCandy = () => {
+  if (timeSinceLastCandy === undefined) timeSinceLastCandy = Date.now()
+  return shouldSpawn(config.candyChance, config.candyFrequency, timeSinceLastCandy)
+}
+
+const shouldSpawnPoison = () => {
+  if (timeSinceLastPoison === undefined) timeSinceLastPoison = Date.now()
+  return shouldSpawn(config.poisonChance, config.poisonFrequency, timeSinceLastPoison)
+}
+
+const spawnCell = () => {
+  const position = randomPosition()
+
+  return {
+    birth: Date.now(),
+    position: { col: position.col, row: position.row },
+    cell: grid[position.row][position.col]
+  }
 }
 
 const spawnCandy = () => {
-  const now = Date.now()
-  const position = randomPosition()
-  const cell = grid[position.row][position.col]
-  candies[position.row][position.col] = {
-    birth: now,
-    cell: cell
-  }
-  timeSinceLastCandy = now
-  // candy should die from time to time
+  const cell = spawnCell()
+  timeSinceLastCandy = cell.birth
+  candies[cell.position.row][cell.position.col] = cell
+}
+
+const spawnPoison = () => {
+  const cell = spawnCell()
+  timeSinceLastPoison = cell.birth
+  poisons[cell.position.row][cell.position.col] = cell
+}
+
+const drawSpots = (spotGrid, style) => {
+  spotGrid.forEach((cols) => {
+    cols.filter(spot => spot !== false).forEach(spot => {
+      paintCell(spot.cell, style)
+    })
+  })
 }
 
 const drawCandies = () => {
-  candies.forEach((cols) => {
-    cols.filter(candy => candy !== false).forEach(candy => {
-      paintCell(candy.cell, '#900')
-    })
+  drawSpots(candies, '#900')
+}
+
+const drawPoisons = () => {
+  drawSpots(poisons, '#060')
+}
+
+const expireSpots = (grid, ttl) => {
+  const now = Date.now()
+  if (ttl === undefined) ttl = config.velocity * 10 // ten ticks
+
+  return grid.map((cols) => {
+    return cols.map(spot => (now - spot.birth) > ttl ? false : spot)
   })
+}
+
+const expireCandies = () => {
+  candies = expireSpots(candies, config.velocity * 40)
+}
+const expirePoisons = () => {
+  poisons = expireSpots(poisons, config.velocity * 110)
 }
 
 const paintCell = (cell, style) => {
@@ -102,10 +149,15 @@ const draw = (state) => {
   Render.grid(grid, config, context) // clean grid
 
   if (shouldSpawnCandy()) spawnCandy()
+  if (shouldSpawnPoison()) spawnPoison()
+
+  expireCandies()
+  expirePoisons()
 
   changeDirection()
   moveSnake()
   drawCandies()
+  drawPoisons()
   drawSnake()
 
   return state
@@ -252,10 +304,14 @@ export const load = (overrides) => {
   candies = grid.map((cols) => {
     return cols.map(_ => false)
   })
+  poisons = grid.map((cols) => {
+    return cols.map(_ => false)
+  })
 
   snake = [Grid.center(grid)]
   console.log(snake)
 
+  spawnCandy()
   drawSnake()
   start(draw, config)
 }
