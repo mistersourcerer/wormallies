@@ -167,6 +167,10 @@ const isCandy = (position) => {
   return candies[position.row][position.col]
 }
 
+const isPoison = (position) => {
+  return poisons[position.row][position.col]
+}
+
 const newHead = () => {
   const head = snake[0]
 
@@ -195,20 +199,25 @@ const newHead = () => {
   return grid[row][col]
 }
 
+const die = () => {
+  snake = [Grid.center(grid)]
+  running = false
+  configureSpots()
+}
+
 const moveSnake = () => {
   const head = newHead()
   let body
 
-  if (head === null) { // is dead?
-    // for now, return to center
-    snake = [Grid.center(grid)]
-    running = false
-    return
-  }
+  if (head === null) return die()
 
   if (isCandy(head)) {
     body = snake
     candies[head.row][head.col] = false // remove candy
+  } else if (isPoison(head)) {
+    if (snake.length === 1) return die()
+    body = snake.slice(0, snake.length - 2)
+    poisons[head.row][head.col] = false // remove poison
   } else {
     body = snake.slice(0, snake.length - 1)
   }
@@ -295,22 +304,26 @@ const randomInt = (max) => {
   return Math.floor(Math.random() * Math.floor(max))
 }
 
+const configureSpots = () => {
+  candies = grid.map((cols) => {
+    return cols.map(_ => false)
+  })
+
+  poisons = grid.map((cols) => {
+    return cols.map(_ => false)
+  })
+}
+
 export const load = (overrides) => {
   document.onkeydown = control
 
   config = { ...defaultConfig, ...overrides }
   context = configureCanvas(config).getContext('2d')
   grid = Render.grid(Grid.empty(config), config, context)
-  candies = grid.map((cols) => {
-    return cols.map(_ => false)
-  })
-  poisons = grid.map((cols) => {
-    return cols.map(_ => false)
-  })
 
   snake = [Grid.center(grid)]
-  console.log(snake)
 
+  configureSpots()
   spawnCandy()
   drawSnake()
   start(draw, config)
