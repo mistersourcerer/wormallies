@@ -73,6 +73,41 @@ const drawCandies = () => {
   })
 }
 
+const paintCell = (cell, style) => {
+  // means 'cleanup'
+  if (style === undefined) {
+    style = config.backgroundColor
+    Render.cell(grid, cell, config, context)
+  } else {
+    context.fillStyle = style
+    context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
+  }
+}
+
+const drawSnake = () => {
+  snake.forEach((cell) => {
+    paintCell(cell, '#009')
+  })
+}
+
+const draw = (state) => {
+  if (!running) return state
+
+  const now = Date.now()
+  if (!shouldRun(now)) return state
+
+  lastRun = now
+  Render.grid(grid, config, context) // clean grid
+
+  if (shouldSpawnCandy()) spawnCandy()
+
+  moveSnake()
+  drawCandies()
+  drawSnake()
+
+  return state
+}
+
 const isCandy = (position) => {
   return candies[position.row][position.col]
 }
@@ -132,30 +167,6 @@ const shouldRun = (now) => {
   return now - lastRun >= config.velocity
 }
 
-const drawSnake = () => {
-  snake.forEach((cell) => {
-    paintCell(cell, '#009')
-  })
-}
-
-const draw = (state) => {
-  if (!running) return state
-
-  const now = Date.now()
-  if (!shouldRun(now)) return state
-
-  lastRun = now
-  Render.grid(grid, config, context) // clean grid
-
-  if (shouldSpawnCandy()) spawnCandy()
-
-  moveSnake()
-  drawCandies()
-  drawSnake()
-
-  return state
-}
-
 const canvasPosition = (width, height) => {
   let y = (window.innerWidth / 2) - (width / 2)
   if (y < 0) y = 0
@@ -176,26 +187,50 @@ const configureCanvas = (config) => {
   return canvas
 }
 
-const paintCell = (cell, style) => {
-  // means 'cleanup'
-  if (style === undefined) {
-    style = config.backgroundColor
-    Render.cell(grid, cell, config, context)
-  } else {
-    context.fillStyle = style
-    context.fillRect(cell.x + config.cellBorderSize, cell.y, cell.width, cell.height)
-  }
-}
-
 const shouldChangeDirection = (keyCode) => {
   return Object.keys(directions).includes(keyCode)
 }
 
+const allowedNewDirections = (direction) => {
+  let forbidden
+  switch (direction) {
+    case Direction.north:
+      forbidden = Direction.south
+      break
+    case Direction.east:
+      forbidden = Direction.west
+      break
+    case Direction.south:
+      forbidden = Direction.north
+      break
+    case Direction.west:
+      forbidden = Direction.east
+      break
+  }
+
+  return [
+    Direction.north,
+    Direction.east,
+    Direction.south,
+    Direction.west
+  ].filter(direction => direction !== forbidden)
+}
+
+const canChangeTo = (direction) => {
+  return allowedNewDirections(movingTo).includes(direction)
+}
+
 const changeDirection = (direction) => {
-  movingTo = direction
+  // TODO: accumulate keystrokes to turn real fast if necessary
+
+  if (canChangeTo(direction)) {
+    movingTo = direction
+  }
 }
 
 const control = (event) => {
+  // TODO: add a buffer of movements to allow those nice SHARP turns
+  // probably should be implemented inside changeDirection
   if (shouldChangeDirection(event.code)) {
     running = true
     changeDirection(directions[event.code])
