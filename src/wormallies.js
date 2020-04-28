@@ -6,11 +6,12 @@ const defaultConfig = {
   width: 500,
   height: 500,
   cellSize: 16,
-  cellBorderSize: 1,
-  backgroundColor: '#fcf8f3',
-  snakeColor: '#e7d39f',
-  candyColor: '#d7385e',
-  poisonColor: '#100303',
+  borderSize: 1,
+  backgroundColor: '#fff3cd',
+  borderColor: '#4d3e3e',
+  snakeColor: '#ff926b',
+  candyColor: '#ff5733',
+  poisonColor: '#4d3e3e',
   velocity: 130,
   candyFrequency: 5000, // milisecs
   candyChance: 60, // 70 %
@@ -104,7 +105,7 @@ const spawnPoison = () => {
 const drawSpots = (spotGrid, style) => {
   spotGrid.forEach((cols) => {
     cols.filter(spot => spot !== false).forEach(spot => {
-      paintCell(spot.cell, style)
+      Render.cell(spot.cell, context, { ...config, backgroundColor: style })
     })
   })
 }
@@ -117,11 +118,11 @@ const drawPoisons = () => {
   drawSpots(poisons, config.poisonColor)
 }
 
-const expireSpots = (grid, ttl) => {
+const expireSpots = (spots, ttl) => {
   const now = Date.now()
   if (ttl === undefined) ttl = config.velocity * 10 // ten ticks
 
-  return grid.map((cols) => {
+  return spots.map((cols) => {
     return cols.map(spot => (now - spot.birth) > ttl ? false : spot)
   })
 }
@@ -133,25 +134,10 @@ const expirePoisons = () => {
   poisons = expireSpots(poisons, config.poisonTTL)
 }
 
-const paintCell = (cell, style) => {
-  // means 'cleanup'
-  if (style === undefined) {
-    style = config.backgroundColor
-    Render.cell(grid, cell, config, context)
-  } else {
-    context.fillStyle = style
-    context.fillRect(
-      cell.x + config.cellBorderSize * 1.5,
-      cell.y - config.cellBorderSize / 2,
-      cell.width,
-      cell.height
-    )
-  }
-}
-
 const drawSnake = () => {
   snake.forEach((cell) => {
-    paintCell(cell, config.snakeColor)
+    context.fillStyle = config.snakeColor
+    context.fillRect(cell.x, cell.y, cell.width, cell.height)
   })
 }
 
@@ -162,7 +148,7 @@ const draw = (state) => {
   if (!shouldRun(now)) return state
 
   lastRun = now
-  Render.grid(grid, config, context) // clean grid
+  Render.grid(grid, context, config) // clean grid
 
   if (shouldSpawnCandy()) spawnCandy()
   if (shouldSpawnPoison()) spawnPoison()
@@ -225,7 +211,9 @@ const die = () => {
   snake = [Grid.center(grid)]
   running = false
   points = 0
-  configureSpots()
+
+  candies = falsifyGrid(grid)
+  poisons = falsifyGrid(grid)
 }
 
 const pointsFor = (candy) => {
@@ -237,7 +225,7 @@ const pointsFor = (candy) => {
 
 const moveSnake = () => {
   const head = newHead()
-  let body
+  let body = []
 
   if (head === null) return die()
 
@@ -266,15 +254,6 @@ const shouldRun = (now) => {
   if (lastRun === undefined) return true
 
   return now - lastRun >= config.velocity
-}
-
-const configureCanvas = (config) => {
-  const canvas = document.getElementById('wormallies')
-
-  canvas.width = config.width
-  canvas.height = config.height
-
-  return canvas
 }
 
 const allowedNewDirections = (direction) => {
@@ -330,26 +309,30 @@ const randomInt = (max) => {
   return Math.floor(Math.random() * Math.floor(max))
 }
 
-const configureSpots = () => {
-  candies = grid.map((cols) => {
-    return cols.map(_ => false)
-  })
-
-  poisons = grid.map((cols) => {
-    return cols.map(_ => false)
-  })
+const falsifyGrid = (grid) => {
+  return grid.map(cols => cols.map(_ => false))
 }
 
 export const loadGame = (overrides) => {
   document.onkeydown = control
 
   config = { ...defaultConfig, ...overrides }
-  context = configureCanvas(config).getContext('2d')
-  grid = Render.grid(Grid.empty(config), config, context)
+  const emptyGrid = Grid.empty(config)
+  grid = emptyGrid.cells
 
+  const canvas = document.getElementById('wormallies')
+  canvas.width = config.width
+  canvas.height = config.height
+  config.width = emptyGrid.config.width
+  config.height = emptyGrid.config.height
+
+  context = canvas.getContext('2d')
+  Render.grid(grid, context, config)
   snake = [Grid.center(grid)]
 
-  configureSpots()
+  candies = falsifyGrid(grid)
+  poisons = falsifyGrid(grid)
+
   spawnCandy()
   drawSnake()
   start(draw, config)

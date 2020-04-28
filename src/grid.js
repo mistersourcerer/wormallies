@@ -1,32 +1,55 @@
+const Styles = {
+  inward: 'inward'
+}
+
 const defaultConfig = {
   width: 400,
   height: 400,
   cellSize: 20,
-  cellBorderSize: 0
+  borderSize: 1,
+  borderStyle: Styles.inward
+}
+
+const createCell = (col, row, config) => {
+  const x = (col * config.cellSize) + (col + 1) * config.borderSize
+  const y = (row * config.cellSize) + (row + 1) * config.borderSize
+  const width = config.cellSize
+  const height = config.cellSize
+
+  return {
+    x: x,
+    y: y,
+    width: width,
+    height: height,
+    col: col,
+    row: row
+  }
 }
 
 const empty = (overrides) => {
   const config = { ...defaultConfig, ...overrides }
-  const totalCellSize = config.cellSize + (config.cellBorderSize * 1.5)
-  const cols = Math.floor(config.width / totalCellSize)
-  const rows = Math.floor(config.height / totalCellSize)
+  const totalCellSize = config.cellSize + config.borderSize
+  let width = config.width
+  let height = config.height
 
-  return Array(rows).fill(null).map((_, row) => {
-    const y = (row * config.cellBorderSize) + (row * config.cellSize)
+  const cols = Math.floor(width / totalCellSize)
+  width = cols * totalCellSize
 
-    return Array(cols).fill(null).map((_, col) => {
-      const x = (col * config.cellBorderSize) + (col * config.cellSize)
+  const rows = Math.floor(height / totalCellSize)
+  height = rows * totalCellSize
 
-      return {
-        x: x + config.cellBorderSize,
-        y: y + (config.cellBorderSize / 2),
-        width: config.cellSize,
-        height: config.cellSize,
-        row: row,
-        col: col
-      }
-    })
+  const cells = Array(rows).fill(null).map((_, row) => {
+    return Array(cols).fill(null).map((_, col) => createCell(col, row, config))
   })
+
+  return {
+    cells: cells,
+    config: {
+      ...config,
+      width: width,
+      height: height
+    }
+  }
 }
 
 const center = (grid) => {

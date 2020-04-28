@@ -1,54 +1,60 @@
 const defaultConfig = {
-  width: 800,
-  height: 600,
-  cellSize: 16,
-  cellBorderSize: 2,
-  backgroundColor: '#fff'
+  backgroundColor: '#fff',
+  borderColor: '#f00'
 }
 
-const renderCell = (grid, cell, overrides, context) => {
-  const config = { ...defaultConfig, ...overrides }
-  const x = cell.x
-  const y = cell.y
-  const row = cell.row
-  const col = cell.col
-  const cols = grid[cell.row]
-  const size = config.cellSize + config.cellBorderSize
-
+const renderCell = (cell, context, config) => {
   context.beginPath()
+  // bottom
+  let startX = cell.x
+  let startY = cell.y + cell.height
+  let bottomLineX = cell.x + cell.width
+  let bottomLineY = cell.y + cell.height
+  let leftLineX = cell.x + cell.width
+  let leftLineY = cell.y
 
-  // background
+  if (config.borderSize % 2 !== 0) {
+    startX += 0.5
+    startY += 0.5
+    bottomLineX += 0.5
+    bottomLineY += 0.5
+    leftLineX += 0.5
+    leftLineY += 0.5
+  }
+
   context.fillStyle = config.backgroundColor
-  context.fillRect(x, y, size, size)
+  context.fillRect(cell.x, cell.y, config.cellSize, config.cellSize)
 
-  if (row === 0) {
-    // draw tops
-    context.moveTo(x + config.cellBorderSize, y + config.cellBorderSize)
-    context.lineTo(x + config.cellSize, y + config.cellBorderSize)
-    context.stroke()
-  }
+  // bottom
+  context.moveTo(startX, startY)
+  context.lineTo(bottomLineX, bottomLineY)
 
-  if (col === cols.length - 1) {
-    context.moveTo(x + config.cellSize + (config.cellBorderSize / 2), y + config.cellBorderSize)
-    context.lineTo(x + config.cellSize + (config.cellBorderSize / 2), y + config.cellSize)
-    context.stroke()
-  }
+  // left
+  context.lineTo(leftLineX, leftLineY)
 
-  context.moveTo(x + config.cellBorderSize, y + config.cellBorderSize)
-  context.lineTo(x + config.cellBorderSize, y + config.cellSize)
-  context.stroke()
-
-  context.moveTo(x + config.cellBorderSize, y + config.cellSize)
-  context.lineTo(x + config.cellBorderSize + config.cellSize, y + config.cellSize)
+  context.strokeStyle = config.borderColor
+  context.lineWidth = config.borderSize
+  context.lineCap = 'square'
   context.stroke()
 }
 
-const renderGrid = (grid, overrides, context) => {
+const renderGrid = (grid, context, overrides) => {
   const config = { ...defaultConfig, ...overrides }
+
+  const borderSize = config.borderSize
+  const odd = borderSize % 2 !== 0
+  let start = 0
+  if (odd) start += 0.5
+
+  context.fillStyle = config.backgroundColor
+  context.fillRect(start, start, config.width, config.height)
+
+  context.strokeStyle = config.borderColor
+  context.strokeRect(start, start, config.width, config.height)
 
   grid.forEach((cols, row) => {
     cols.forEach((cell, col) => {
-      renderCell(grid, cell, config, context)
+      renderCell(cell, context, config)
     })
   })
 
