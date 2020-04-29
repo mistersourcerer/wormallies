@@ -1,6 +1,9 @@
 const defaultConfig = {
   backgroundColor: '#fff',
-  borderColor: '#f00'
+  borderColor: '#f00',
+  debug: {
+    coords: true
+  }
 }
 
 const renderCell = (cell, context, config) => {

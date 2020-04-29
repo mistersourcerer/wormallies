@@ -1,6 +1,5 @@
 import { start } from './ticker'
 import Grid from './grid'
-import Render from './grid_render'
 
 const defaultConfig = {
   width: 500,
@@ -105,7 +104,7 @@ const spawnPoison = () => {
 const drawSpots = (spotGrid, style) => {
   spotGrid.forEach((cols) => {
     cols.filter(spot => spot !== false).forEach(spot => {
-      Render.cell(spot.cell, context, { ...config, backgroundColor: style })
+      Grid.renderCell(spot.cell, context, { ...config, backgroundColor: style })
     })
   })
 }
@@ -148,7 +147,7 @@ const draw = (state) => {
   if (!shouldRun(now)) return state
 
   lastRun = now
-  Render.grid(grid, context, config) // clean grid
+  Grid.render(grid, context, config) // clean grid
 
   if (shouldSpawnCandy()) spawnCandy()
   if (shouldSpawnPoison()) spawnPoison()
@@ -180,6 +179,7 @@ const isSnake = (position) => {
 }
 
 const newHead = () => {
+  let counter = 0
   const head = snake[0]
 
   let row = head.row
@@ -203,6 +203,10 @@ const newHead = () => {
       col = head.col - 1
       break
   }
+
+  if (counter === 1) running = false
+
+  counter++
 
   return grid[row][col]
 }
@@ -327,7 +331,7 @@ export const loadGame = (overrides) => {
   config.height = emptyGrid.config.height
 
   context = canvas.getContext('2d')
-  Render.grid(grid, context, config)
+  Grid.render(grid, context, config)
   snake = [Grid.center(grid)]
 
   candies = falsifyGrid(grid)
