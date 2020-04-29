@@ -26,24 +26,36 @@ const createCell = (col, row, config) => {
   }
 }
 
+const generateCells = (cols, rows, config) => {
+  const cells = []
+
+  // walks the Y axis from higher to lower
+  for (let row = rows - 1; row >= 0; row--) {
+    const column = []
+    for (let col = 0; col < cols; col++) {
+      // and then the X axis from lower to higher,
+      //
+      // so the "render" can "think":
+      //  from top to down,
+      //  from left to right
+      column.push(createCell(col, row, config))
+    }
+    cells.push(column)
+  }
+
+  return cells
+}
+
 const empty = (overrides) => {
   const config = { ...defaultConfig, ...overrides }
   const totalCellSize = config.cellSize + config.borderSize
-  let width = config.width
-  let height = config.height
-
-  const cols = Math.floor(width / totalCellSize)
-  width = cols * totalCellSize
-
-  const rows = Math.floor(height / totalCellSize)
-  height = rows * totalCellSize
-
-  const cells = Array(rows).fill(null).map((_, row) => {
-    return Array(cols).fill(null).map((_, col) => createCell(col, row, config))
-  })
+  const rows = Math.floor(config.height / totalCellSize)
+  const height = rows * totalCellSize
+  const cols = Math.floor(config.width / totalCellSize)
+  const width = cols * totalCellSize
 
   return {
-    cells: cells,
+    cells: generateCells(cols, rows, config),
     config: {
       ...config,
       width: width,
