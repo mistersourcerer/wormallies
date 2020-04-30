@@ -48,6 +48,7 @@ let poisons
 let context
 let movingTo
 let running = false
+let dead = false
 let lastRun
 let timeSinceLastCandy
 let timeSinceLastPoison
@@ -212,12 +213,9 @@ const newHead = () => {
 }
 
 const die = () => {
-  snake = [Grid.center(grid)]
   running = false
-  points = 0
-
-  candies = falsifyGrid(grid)
-  poisons = falsifyGrid(grid)
+  dead = true
+  config.onDie(grid, points)
 }
 
 const pointsFor = (candy) => {
@@ -304,7 +302,18 @@ const shouldChangeDirection = (keyCode) => {
 
 const control = (event) => {
   if (shouldChangeDirection(event.code)) {
-    running = true
+    if (!running) { // starting a new game
+      running = true
+      config.onStart(grid)
+    }
+
+    if (dead) {
+      dead = false
+      running = true
+      reset()
+      config.onStart(grid)
+    }
+
     directionsBuffer.push(directions[event.code])
   }
 }
@@ -317,14 +326,22 @@ const falsifyGrid = (grid) => {
   return grid.map(cols => cols.map(_ => false))
 }
 
-export const loadGame = (overrides) => {
+const reset = () => {
+  snake = [Grid.center(grid)]
+  points = 0
+
+  candies = falsifyGrid(grid)
+  poisons = falsifyGrid(grid)
+}
+
+export const loadGame = (overrides, callback = (_) => {}) => {
   document.onkeydown = control
 
   config = { ...defaultConfig, ...overrides }
   const emptyGrid = Grid.empty(config)
   grid = emptyGrid.cells
 
-  const canvas = document.getElementById('wormallies')
+  const canvas = config.canvas
   canvas.width = config.width
   canvas.height = config.height
   config.width = emptyGrid.config.width
@@ -339,5 +356,6 @@ export const loadGame = (overrides) => {
 
   spawnCandy()
   drawSnake()
+  callback(grid, emptyGrid.config)
   start(draw, config)
 }

@@ -35,6 +35,7 @@ body {
 .box h1 {
   font-family: 'Archivo Black', sans-serif;
   color: #4d3e3e;
+  font-size: 40px;
 }
 
 .box h2 {
@@ -42,14 +43,47 @@ body {
 }
 
 .game {
-  margin-top: 40px;
-}
+  .score {
+    display: flex;
+    flex-direction: row-reverse;
+    margin-right: 22px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 40px;
+    color: #4d3e3e;
+  }
 
-.game .score {
-  display: flex;
-  flex-direction: row-reverse;
-  margin-right: 22px;
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 40px;
-  color: #4d3e3e;
+  .screen {
+    position: relative;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0px;
+    border: 1px dashed #ffc38b;
+    background-color: #fff3cd;
+    opacity: 0.80;
+    color: #ffc38b;
+  }
+
+  .overlay-start {
+    position: absolute;
+    display: flex;
+    top: 0px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 30px;
+    color: #4d3e3e;
+    margin-top: 100px;
+    margin-left: 45px;
+  }
+
+  .overlay-dead {
+    position: absolute;
+    display: flex;
+    top: 100px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 30px;
+    color: #4d3e3e;
+    margin-top: 100px;
+    margin-left: 45px;
+  }
 }
