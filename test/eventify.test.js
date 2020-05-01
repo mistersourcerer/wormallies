@@ -6,7 +6,7 @@ describe('Eventify', () => {
   describe('that()', () => {
     describe('mixing EventTarget interface', () => {
       beforeEach(() => {
-        eventified = Eventify.that({original: 'Here'})
+        eventified = Eventify.that({ original: 'Here' })
       })
 
       test('dispatchEvent', () => {

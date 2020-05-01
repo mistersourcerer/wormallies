@@ -1,5 +1,6 @@
 import { start } from './ticker'
 import Grid from './grid'
+import Eventify from './eventify'
 
 const defaultConfig = {
   width: 500,
@@ -16,10 +17,9 @@ const defaultConfig = {
   candyChance: 60, // 70 %
   poisonFrequency: 7000, // milisecs
   poisonChance: 10, // 50 %
-  maxPoints: 30,
-  pointRounding: 5,
-  pointsLost: 3,
-  onScore: (_) => {}
+  maxScore: 30,
+  scoreRounding: 5,
+  scoreLost: 3
 }
 
 defaultConfig.candyTTL = defaultConfig.velocity * 40 // 40 ticks
@@ -53,7 +53,8 @@ let lastRun
 let timeSinceLastCandy
 let timeSinceLastPoison
 let snake
-let points = 0
+let score = 0
+let handler = Eventify.that({})
 
 const randomPosition = () => {
   return {
@@ -212,17 +213,27 @@ const newHead = () => {
   return grid[row][col]
 }
 
+const trigger = (type, detail) => {
+  const eventType = `wormallies.${type}`
+  const event = new window.CustomEvent(eventType, { detail: detail, bubbles: true })
+  handler.dispatchEvent(event)
+}
+
 const die = () => {
   running = false
   dead = true
-  config.onDie(grid, points)
+
+  trigger('die', {
+    grid: grid,
+    score: score
+  })
 }
 
-const pointsFor = (candy) => {
-  const units = config.candyTTL / config.maxPoints
-  const rawPoints = config.maxPoints - ((Date.now() - candy.birth) / units)
+const scoreFor = (candy) => {
+  const units = config.candyTTL / config.maxScore
+  const rawScore = config.maxScore - ((Date.now() - candy.birth) / units)
 
-  return Math.ceil(rawPoints / config.pointRounding) * config.pointRounding
+  return Math.ceil(rawScore / config.scoreRounding) * config.scoreRounding
 }
 
 const moveSnake = () => {
@@ -233,12 +244,14 @@ const moveSnake = () => {
 
   if (isCandy(head)) {
     body = snake
-    points = points + pointsFor(candies[head.row][head.col])
+    score = score + scoreFor(candies[head.row][head.col])
+    trigger('score', { score: score })
     candies[head.row][head.col] = false // remove candy
     spawnCandy()
   } else if (isPoison(head)) {
     if (snake.length === 1) return die()
-    points -= config.pointsLost
+    score -= config.scoreLost
+    trigger('score', { score: score })
     body = snake.slice(0, snake.length - 2)
     poisons[head.row][head.col] = false // remove poison
   } else if (isSnake(head)) {
@@ -246,8 +259,6 @@ const moveSnake = () => {
   } else {
     body = snake.slice(0, snake.length - 1)
   }
-
-  config.onScore(points)
 
   snake = [head].concat(body)
 }
@@ -304,14 +315,14 @@ const control = (event) => {
   if (shouldChangeDirection(event.code)) {
     if (!running) { // starting a new game
       running = true
-      config.onStart(grid)
+      trigger('start', { grid: grid })
     }
 
     if (dead) {
       dead = false
       running = true
       reset()
-      config.onStart(grid)
+      trigger('start', { grid: grid })
     }
 
     directionsBuffer.push(directions[event.code])
@@ -328,7 +339,7 @@ const falsifyGrid = (grid) => {
 
 const reset = () => {
   snake = [Grid.center(grid)]
-  points = 0
+  score = 0
 
   candies = falsifyGrid(grid)
   poisons = falsifyGrid(grid)
@@ -340,6 +351,7 @@ export const loadGame = (overrides, callback = (_) => {}) => {
   config = { ...defaultConfig, ...overrides }
   const emptyGrid = Grid.empty(config)
   grid = emptyGrid.cells
+  handler = config.handler || config.canvas
 
   const canvas = config.canvas
   canvas.width = config.width

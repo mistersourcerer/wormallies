@@ -1,5 +1,6 @@
 import './css/app.scss'
 import { loadGame } from './wormallies'
+import Eventify from './eventify'
 
 const loadOverlay = (config, overlay) => {
   document.querySelector('.game .overlay-dead').style.display = 'none'
@@ -15,6 +16,8 @@ const loadOverlay = (config, overlay) => {
 }
 
 const onStart = (_) => {
+  console.log('calling me!!!')
+
   document.querySelector('.game .score .value').style.visibility = 'visible'
   document.querySelector('.game .overlay').style.display = 'none'
   document.querySelector('.game .overlay-start').style.display = 'none'
@@ -23,38 +26,51 @@ const onStart = (_) => {
   document.querySelector('.game .overlay-dead .score').style.display = 'none'
 }
 
-const onDie = (_, points) => {
+const onDie = (e) => {
+  const score = e.detail.score
+
   document.querySelector('.game .score .value').style.visibility = 'hidden'
   document.querySelector('.game .overlay').style.display = 'block'
   document.querySelector('.game .overlay-start').style.display = 'block'
   document.querySelector('.game .overlay-dead').style.display = 'block'
   document.querySelector('.game .overlay-dead .score').style.display = 'block'
-  document.querySelector('.game .overlay-dead .score').innerText = `MUCH POINTS: ${points}`
+  document.querySelector('.game .overlay-dead .score').innerText = `MUCH POINTS: ${score}`
 }
 
-const load = () => {
+const onScore = (e) => {
+  const score = e.detail.score
+  const value = document.querySelector('.game .score .value')
+
+  if (score > 0) {
+    value.innerText = score
+    value.style.visibility = 'visible'
+  } else {
+    value.innerText = '0'
+    value.style.visibility = 'hidden'
+  }
+}
+
+const addHandlers = (target) => {
+  Eventify.that(target)
+
+  target.on('wormallies.start', onStart)
+  target.on('wormallies.score', onScore)
+  target.on('wormallies.die', onDie)
+
+  return target
+}
+
+const load = function () {
   const value = document.querySelector('.game .score .value')
   value.innerText = '0'
   value.style.visibility = 'hidden'
-
-  const onScore = (score) => {
-    if (score > 0) {
-      value.innerText = score
-      value.style.visibility = 'visible'
-    } else {
-      value.innerText = '0'
-      value.style.visibility = 'hidden'
-    }
-  }
 
   const canvas = document.getElementById('wormallies')
   let config
 
   loadGame({
-    onStart: onStart,
-    onScore: onScore,
-    onDie: onDie,
-    canvas: canvas
+    canvas: canvas,
+    handler: addHandlers({})
   }, (_, c) => { config = c })
 
   loadOverlay(config, document.querySelector('.game .overlay'))
