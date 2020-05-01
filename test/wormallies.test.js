@@ -10,28 +10,25 @@ describe('app', () => {
     window.innerWidth = 800
     window.innerHeight = 800
 
-    load = require('wormallies').load
+    load = require('wormallies').loadGame
   })
 
-  describe('load', () => {
+  describe('loadGame', () => {
     let canvas
 
     beforeAll(() => {
+      canvas = document.getElementById('wormallies')
+
       load({
         width: 400,
-        height: 400
+        height: 400,
+        canvas: canvas
       }) // since it is not called by the JSDOM
-
-      canvas = document.getElementById('wormallies')
     })
 
     test('resizes canvas given the param configurations', () => {
       expect(canvas.width).toBe(400)
       expect(canvas.height).toBe(400)
-    })
-
-    test('centralizes the canvas in the window', () => {
-      expect(canvas.style.margin).toBe('200px 0px 0px 200px')
     })
   })
 })
