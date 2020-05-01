@@ -40,7 +40,6 @@ describe('Eventify', () => {
 
       test('dispatches events registered by on* functions', () => {
         let bbq = false
-        debugger;
         withOnFuns.onlol = (e) => { bbq = e.detail.bbq }
         withOnFuns.dispatchEvent(
           new window.CustomEvent('lol', { detail: { bbq: true } })
