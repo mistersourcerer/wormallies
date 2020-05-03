@@ -3,7 +3,7 @@ import { loadGame } from './wormallies'
 import Eventify from './eventify'
 
 const loadOverlay = (config, overlay) => {
-  document.querySelector('.game .overlay-dead').style.display = 'none'
+  document.querySelector('.game .overlay .dead').style.display = 'none'
 
   overlay.width = config.width
   overlay.height = config.height
@@ -20,10 +20,10 @@ const onStart = (_) => {
 
   document.querySelector('.game .score .value').style.visibility = 'visible'
   document.querySelector('.game .overlay').style.display = 'none'
-  document.querySelector('.game .overlay-start').style.display = 'none'
-  document.querySelector('.game .overlay-dead').style.display = 'none'
-  document.querySelector('.game .overlay-dead .score').innerText = ''
-  document.querySelector('.game .overlay-dead .score').style.display = 'none'
+  document.querySelector('.game .overlay .start').style.display = 'none'
+  document.querySelector('.game .overlay .dead').style.display = 'none'
+  document.querySelector('.game .overlay .dead .score').innerText = ''
+  document.querySelector('.game .overlay .dead .score').style.display = 'none'
 }
 
 const onDie = (e) => {
@@ -31,10 +31,10 @@ const onDie = (e) => {
 
   document.querySelector('.game .score .value').style.visibility = 'hidden'
   document.querySelector('.game .overlay').style.display = 'block'
-  document.querySelector('.game .overlay-start').style.display = 'block'
-  document.querySelector('.game .overlay-dead').style.display = 'block'
-  document.querySelector('.game .overlay-dead .score').style.display = 'block'
-  document.querySelector('.game .overlay-dead .score').innerText = `MUCH POINTS: ${score}`
+  document.querySelector('.game .overlay .start').style.display = 'block'
+  document.querySelector('.game .overlay .dead').style.display = 'block'
+  document.querySelector('.game .overlay .dead .score').style.display = 'block'
+  document.querySelector('.game .overlay .dead .score').innerText = `MUCH POINTS: ${score}`
 }
 
 const onScore = (e) => {
@@ -66,12 +66,21 @@ const load = function () {
   value.style.visibility = 'hidden'
 
   const canvas = document.getElementById('wormallies')
+  const gameOverlay = document.querySelector('.game .overlay')
+  const afterLoad = (_, c) => {
+    config = c
+
+    gameOverlay.width = config.width
+    gameOverlay.height = config.height
+  }
+
   let config
 
   loadGame({
     canvas: canvas,
-    handler: addHandlers({})
-  }, (_, c) => { config = c })
+    handler: addHandlers({}),
+    width: (window.innerWidth <= 800) ? window.innerWidth - 50 : 800
+  }, afterLoad)
 
   loadOverlay(config, document.querySelector('.game .overlay'))
 }

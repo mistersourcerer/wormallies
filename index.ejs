@@ -5,27 +5,33 @@
   </head>
   <body>
     <div class="box">
-      <div>
-        <h1>Wormallies</h1>
-        <h2>A rendition of the classic Snake</h2>
-      </div>
-
       <div class="game">
+        <header>
+          <div>
+            <h1>Wormallies</h1>
+            <h2>A rendition of the classic Snake</h2>
+          </div>
+        </header>
+
         <div class="score">
           <span class="value">
           </span>
         </div>
+
         <div class="screen">
           <canvas id="wormallies"></canvas>
-          <div class="overlay"></div>
-          <div class="overlay-start">
-            <span>
-              Press any directional key to start a new game
-            </span>
-          </div>
-          <div class="overlay-dead">
-            <span class="message">OH snap!</span>
-            <span class="score"></span>
+
+          <div class="overlay">
+            <div class="start">
+              <span>
+                Press any directional key to start a new game
+              </span>
+            </div>
+
+            <div class="dead">
+              <span class="message">OH snap!</span>
+              <span class="score"></span>
+            </div>
           </div>
         </div>
       </div>

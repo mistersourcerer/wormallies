@@ -22,7 +22,7 @@ const defaultConfig = {
   scoreLost: 3
 }
 
-defaultConfig.candyTTL = defaultConfig.velocity * 40 // 40 ticks
+defaultConfig.foodTTL = defaultConfig.velocity * 40 // 40 ticks
 defaultConfig.poisonTTL = defaultConfig.velocity * 110
 
 const Direction = {
@@ -129,7 +129,7 @@ const expireSpots = (spots, ttl) => {
 }
 
 const expireCandies = () => {
-  candies = expireSpots(candies, config.candyTTL)
+  candies = expireSpots(candies, config.foodTTL)
 }
 const expirePoisons = () => {
   poisons = expireSpots(poisons, config.poisonTTL)
@@ -230,7 +230,7 @@ const die = () => {
 }
 
 const scoreFor = (candy) => {
-  const units = config.candyTTL / config.maxScore
+  const units = config.foodTTL / config.maxScore
   const rawScore = config.maxScore - ((Date.now() - candy.birth) / units)
 
   return Math.ceil(rawScore / config.scoreRounding) * config.scoreRounding
