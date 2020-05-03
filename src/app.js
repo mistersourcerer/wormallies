@@ -16,8 +16,6 @@ const loadOverlay = (config, overlay) => {
 }
 
 const onStart = (_) => {
-  console.log('calling me!!!')
-
   document.querySelector('.game .score .value').style.visibility = 'visible'
   document.querySelector('.game .overlay').style.display = 'none'
   document.querySelector('.game .overlay .start').style.display = 'none'

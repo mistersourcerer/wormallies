@@ -32,7 +32,7 @@ const Direction = {
   west: 'west'
 }
 
-const directions = {
+const keyDirections = {
   ArrowUp: Direction.north,
   ArrowRight: Direction.east,
   ArrowDown: Direction.south,
@@ -55,6 +55,7 @@ let timeSinceLastPoison
 let snake
 let score = 0
 let handler = Eventify.that({})
+let touchStart
 
 const randomPosition = () => {
   return {
@@ -307,12 +308,12 @@ const changeDirection = () => {
   }
 }
 
-const shouldChangeDirection = (keyCode) => {
-  return Object.keys(directions).includes(keyCode)
+const shouldChangeDirection = (direction) => {
+  return Object.keys(Direction).includes(direction)
 }
 
-const control = (event) => {
-  if (shouldChangeDirection(event.code)) {
+const move = (direction) => {
+  if (shouldChangeDirection(direction)) {
     if (!running) { // starting a new game
       running = true
       trigger('start', { grid: grid })
@@ -325,7 +326,7 @@ const control = (event) => {
       trigger('start', { grid: grid })
     }
 
-    directionsBuffer.push(directions[event.code])
+    directionsBuffer.push(Direction[direction])
   }
 }
 
@@ -345,15 +346,64 @@ const reset = () => {
   poisons = falsifyGrid(grid)
 }
 
-export const loadGame = (overrides, callback = (_) => {}) => {
-  document.onkeydown = control
+const positionFrom = (event) => {
+  return {
+    x: event.changedTouches[0].clientX,
+    y: event.changedTouches[0].clientY
+  }
+}
 
+const directionFromTouch = (start, end) => {
+  // First we check the direction of the touch (left, right, up, down?)
+  const diffX = end.x - start.x
+  const horizDirection = (diffX > 0) ? Direction.east : Direction.west
+  const diffY = end.y - start.y
+  const vertDirection = (diffY > 0) ? Direction.south : Direction.north
+
+  // Then we check if what motion was more "firm/visible"
+  // eg.: south west more south or more west?
+  // And use this to decide the final direction to move.
+  const horiz = (diffX < 0) ? diffX * -1 : diffX
+  const vert = (diffY < 0) ? diffY * -1 : diffY
+
+  return (horiz > vert) ? horizDirection : vertDirection
+}
+
+const handleTouch = (event) => {
+  if (event.type === 'touchstart') {
+    touchStart = positionFrom(event)
+    return
+  }
+  // A safe in case touch is "weird"
+  if (!touchStart) return move(Direction.north)
+
+  const touchEnd = positionFrom(event)
+
+  move(directionFromTouch(touchStart, touchEnd))
+  touchStart = null
+}
+
+const handleKey = (event) => {
+  move(keyDirections[event.code])
+}
+
+const addControlHandlers = (canvas) => {
+  document.onkeydown = handleKey
+
+  // touch events
+  document.addEventListener('touchstart', handleTouch, false)
+  document.addEventListener('touchend', handleTouch, false)
+}
+
+export const loadGame = (overrides, callback = (_) => {}) => {
   config = { ...defaultConfig, ...overrides }
+  const canvas = config.canvas
+  addControlHandlers(canvas)
+
   const emptyGrid = Grid.empty(config)
   grid = emptyGrid.cells
-  handler = config.handler || config.canvas
 
-  const canvas = config.canvas
+  handler = config.handler || canvas
   canvas.width = config.width
   canvas.height = config.height
   config.width = emptyGrid.config.width
