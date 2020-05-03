@@ -1,6 +1,7 @@
 import './css/app.scss'
 import { loadGame } from './wormallies'
 import Eventify from './eventify'
+import { disableBodyScroll } from 'body-scroll-lock'
 
 const loadOverlay = (config, overlay) => {
   document.querySelector('.game .overlay .dead').style.display = 'none'
@@ -58,6 +59,13 @@ const addHandlers = (target) => {
   return target
 }
 
+const cellSize = (container) => {
+  if (container.innerWidth <= 800) return 50
+  if (container.innerWidth <= 1200) return 30
+  if (container.innerWidth <= 1500) return 20
+  return 16
+}
+
 const load = function () {
   const value = document.querySelector('.game .score .value')
   value.innerText = '0'
@@ -77,10 +85,12 @@ const load = function () {
   loadGame({
     canvas: canvas,
     handler: addHandlers({}),
-    width: (window.innerWidth <= 800) ? window.innerWidth - 50 : 800
+    width: (window.innerWidth <= 800) ? window.innerWidth - 50 : 800,
+    cellSize: cellSize(window)
   }, afterLoad)
 
   loadOverlay(config, document.querySelector('.game .overlay'))
+  disableBodyScroll(canvas)
 }
 
 document.onreadystatechange = load
