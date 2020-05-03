@@ -66,6 +66,30 @@ const cellSize = (container) => {
   return 16
 }
 
+const addOverlayHandlers = (overlay) => {
+  overlay.addEventListener('click', (_) => {
+    overlay.style.display = 'none'
+  })
+
+  let startedAt
+  overlay.addEventListener('touchstart', (event) => {
+    startedAt = {
+      x: event.changedTouches[0].clientX,
+      y: event.changedTouches[0].clientY
+    }
+  })
+
+  overlay.addEventListener('touchend', (event) => {
+    const tap = event.changedTouches[0].clientX === startedAt.x &&
+      event.changedTouches[0].clientY === startedAt.y
+
+    if (tap) {
+      startedAt = null
+      overlay.style.dispaly = 'none'
+    }
+  })
+}
+
 const load = function () {
   const value = document.querySelector('.game .score .value')
   value.innerText = '0'
@@ -73,6 +97,8 @@ const load = function () {
 
   const canvas = document.getElementById('wormallies')
   const gameOverlay = document.querySelector('.game .overlay')
+  addOverlayHandlers(gameOverlay)
+
   const afterLoad = (_, c) => {
     config = c
 
