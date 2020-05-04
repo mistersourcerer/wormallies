@@ -1,5 +1,5 @@
+import { Grid } from 'noctane'
 import { start } from './ticker'
-import Grid from './grid'
 import Eventify from './eventify'
 
 const defaultConfig = {
