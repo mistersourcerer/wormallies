@@ -5,7 +5,7 @@ const server = {
   target: 'node',
   entry: './src/server.js',
   devServer: {
-    contentBase: path.join(__dirname, 'dist'),
+    static: path.join(__dirname, 'dist'),
     compress: true,
     // Well.. here we go, this is actually to be sure that
     // the client starts on port 9000.
