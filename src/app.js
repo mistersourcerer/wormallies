@@ -34,6 +34,8 @@ const onDie = (e) => {
   document.querySelector('.game .overlay .dead').style.display = 'block'
   document.querySelector('.game .overlay .dead .score').style.display = 'block'
   document.querySelector('.game .overlay .dead .score').innerText = `MUCH POINTS: ${score}`
+
+  document.querySelector('.game .score .value').innerText = '0'
 }
 
 const onScore = (e) => {
